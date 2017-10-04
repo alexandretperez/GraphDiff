@@ -28,7 +28,7 @@ namespace RefactorThis.GraphDiff.Internal.Graph
                 SetValue(persisted, null);
                 return;
             }
-            
+
             if (dbValue != null && IsKeyIdentical(context, newValue, dbValue))
                 UpdateValuesWithConcurrencyCheck(context, newValue, dbValue);
             else
@@ -40,9 +40,10 @@ namespace RefactorThis.GraphDiff.Internal.Graph
                 childMember.Update(context, dbValue, newValue);
         }
 
-        private object CreateNewPersistedEntity<T>(DbContext context, T existing, object newValue) where T : class, new()
+        private object CreateNewPersistedEntity<T>(DbContext context, T existing, object newValue) where T : class
         {
-            var instance = Activator.CreateInstance(newValue.GetType());
+            const BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
+            var instance = Activator.CreateInstance(newValue.GetType(), flags, null, null, null);
             SetValue(existing, instance);
             context.Set(Accessor.PropertyType).Add(instance);
             UpdateValuesWithConcurrencyCheck(context, newValue, instance);

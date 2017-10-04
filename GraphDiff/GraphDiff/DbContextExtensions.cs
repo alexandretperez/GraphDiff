@@ -22,7 +22,7 @@ namespace RefactorThis.GraphDiff
         /// <param name="entity">The root entity.</param>
         /// <param name="mapping">The mapping configuration to define the bounds of the graph</param>
         /// <returns>The attached entity graph</returns>
-	    public static T UpdateGraph<T>(this DbContext context, T entity, Expression<Func<IUpdateConfiguration<T>, object>> mapping = null) where T : class, new()
+	    public static T UpdateGraph<T>(this DbContext context, T entity, Expression<Func<IUpdateConfiguration<T>, object>> mapping = null) where T : class
 	    {
             var root = mapping == null ? new GraphNode() : new ConfigurationVisitor<T>().GetNodes(mapping);
             var graphDiffer = new GraphDiffer<T>(root);

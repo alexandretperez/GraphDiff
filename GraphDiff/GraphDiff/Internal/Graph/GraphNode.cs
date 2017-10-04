@@ -45,7 +45,7 @@ namespace RefactorThis.GraphDiff.Internal.Graph
         #endregion
 
         // overridden by different implementations
-        public virtual void Update<T>(DbContext context, T persisted, T updating) where T : class, new()
+        public virtual void Update<T>(DbContext context, T persisted, T updating) where T : class
         {
             UpdateValuesWithConcurrencyCheck(context, updating, persisted);
 
@@ -167,7 +167,10 @@ namespace RefactorThis.GraphDiff.Internal.Graph
             var entityType = ObjectContext.GetObjectType(updating.GetType());
             foreach (var navigationProperty in context.GetRequiredNavigationPropertiesForType(updating.GetType()))
             {
-                var navigationPropertyInfo = entityType.GetProperty(navigationProperty.Name, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+                const BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
+                var navigationPropertyInfo = entityType.GetProperty(navigationProperty.Name, flags);
+                if (!navigationPropertyInfo.CanWrite)
+                    navigationPropertyInfo = navigationPropertyInfo.DeclaringType.GetProperty(navigationProperty.Name, flags);
 
                 var associatedEntity = navigationPropertyInfo.GetValue(updating, null);
                 if (associatedEntity != null)
@@ -189,7 +192,8 @@ namespace RefactorThis.GraphDiff.Internal.Graph
 
         protected static object CreateEmptyEntityWithKey(IObjectContextAdapter context, object entity)
         {
-            var instance = Activator.CreateInstance(entity.GetType());
+            const BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
+            var instance = Activator.CreateInstance(entity.GetType(), flags, null, null, null);
             CopyPrimaryKeyFields(context, entity, instance);
             return instance;
         }
